@@ -2,3 +2,17 @@
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
   <script src="script.js"></script>
 </head>
+<body>
+  <img class="pix" src="http://i.giphy.com/S1phUc5mmaZqM.gif">
+  <img class="pix" src="http://i.giphy.com/eGe59ekUJEll6.gif">
+  <img class="pix" src="http://i.giphy.com/l41lNT5u8hCI92nQc.gif">
+  <script type="text/javascript" charset="utf-8">
+    var els = document.getElementsByClassName("pix");
+    function handleClick(e) {
+      console.log(this);
+    }
+    for(i=0 ; i < els.length ; i++){
+      els[i].addEventListener("click", handleClick, false);
+    }
+  </script>
+</body>

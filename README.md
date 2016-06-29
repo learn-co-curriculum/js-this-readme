@@ -6,125 +6,160 @@
 + Use `this` to refactor jQuery event handlers
 + Explain how `this` refers to different objects based on scope
 
-## Intro
+## Introduction
 
-We're very familiar with `self` in Ruby, and how to use self to refer to the current object when we're manipulating that object.
+It's often important in programming to know what the "owner" of a function is, so that we can operate on some specific object or data safely.
 
-For example, given a class Dog, with `name` and `owner` attributes:
+For instance, consider an event handler that fires when someone clicks
+on a link in the DOM. When that event handling function is invoked,
+we might want to know *which specific* link was clicked, so that we can
+manipulate it in some way.
 
-```ruby
-class Dog
+That's where the `this` keyword comes into play. Every function is
+automatically assigned a `this` value when called, and that represents
+"who" called the function. This value can be an object, an event, or
+even another function.
 
-  attr_accessor :name, :owner
-
-  def initialize(name)
-    @name = name
-  end
-
-  def bark
-    "Woof!"
-  end
-
-  def get_adopted(owner_name)
-    self.owner = owner_name
-  end
-
-end
-```
-
-In the `get_adopted` method, `self` is referencing the dog that is getting adopted.
-
-In JavaScript, a similar concept applies, but instead of using `self`, we use the keyword `this`. The biggest difference between `this` and `self` is that `self` always refers to an object, but in JavaScript, `this` can refer to whatever called the function: an event, action, or object that called the function.
-Every new function gets its own `this` value.
-
-There are four main ways to define the value of `this`, which is determined by the execution context of the function call.
-
-four rules and order of precedence:
-+ default binding - in strict mode - default to undefined, default to global object
+The value of `this` is determined by the *execution context*, or scope, of the
+function call.
 
 ## Global Scope
 
-If we're referencing `this` in the global scope (outside of a function), it can refer to `window` or `document`.
+Code running outside of a function is in the **Global Scope**. Every JavaScript runtime has a default global object that will be the value of `this` when a function is called in global scope. In the browser, if we're referencing `this` in the global scope, we're referencing the `Window` object.
+
+Try adding the following code to `script.js` and then run `index.html`
+in your browser with the JavaScript console open:
 
 ```js
-this === window;
+console.log(this === window);
 // returns true
-
-this === document;
-// returns true
-
-function myFunk(){
-  console.log(this + " is funky");
-}
-myFunk();
-// prints out "[object Window] is funky" because the function is called on the window object.
 ```
-### Strict Mode
 
-If your function is in strict mode (a mode which allows for better error checking by prohibiting the use of implicitly declared variables, duplicate parameter names, and other potentially bug-causing behavior), then the value of `this` becomes `undefined` instead of `window`:
+Here, we called `this` in the global scope, so
+the value of `this` was set to the default global object, `Window`, when the
+function was invoked.
+
+## Function (Local) Scope
+
+Inside of a function, the value of `this` will be set based on how the
+function is called.
+
+### Simple Function Call
+
+Add the following to `script.js` and refresh the page with the console
+open:
 
 ```js
-function sayHi(){
+function checkThis(){
+  console.log(this);
+}
+checkThis();
+// outputs Window object
+```
+
+This will also output the `Window` object, because this simple function
+call doesn't set the `this` value, and because we aren't in *strict
+mode*, the value of `this` must be an object, so the default global
+object `Window` is used.
+
+**Advanced:** Strict mode is a setting that enables better error-checking in your code
+by prohibiting the use of implicitly declared variables, duplicate
+parameter names, and other potentially bug-causing behavior, and
+converting some silent execution errors into not-so-silent ones. For
+more information, check out the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode).
+
+Let's put our function in strict mode:
+
+```js
+function checkThis(){
   'use strict';
-  alert("Hey!! " + this);
+  console.log(this);
 }
-//alerts "Hey!! undefined"
+checkThis();
+// outputs "undefined"
 ```
 
-## Function Scope
+In strict mode, `this` remains at whatever it's set to when entering the execution context. If it's not defined, it remains undefined rather than being assigned the default `Window` object.
 
-Let's look at a more detailed example. Let's define a function that prints `'Hello, ${name}!'`. It accepts an object that has a `name` property.
+### Constructor Function Call
+
+Remember the use of `this` in our constructor functions?
 
 ```js
-function sayHello(person) {
-  console.log('Hello, ' + person.name + '!');
+function Chair(style, color) {
+  console.log(this);
+  this.style = style;
+  this.color = color;
 }
+sofa = new Chair("sofa", "green");
 ```
 
-Let's also define a function for creating a person:
+Here, because we're calling `Chair()` with the `new` keyword, `this`
+refers to the new `Chair` object. So when you see `this.style = style;`
+you can think of it as saying "set the style property of THIS current
+instance of a Chair."
+
+In your console, `this` will be an empty Chair
+object because we haven't assigned the property values yet when we
+output `this`, but try moving that `console.log(this)` to the end of the
+function and see what you get!
+
+### Object Function Call
+
+Objects can have functions as well as properties. When a function is an attribute of an object, `this` is set to the object instance that contains the function, similar to how it works with a constructor function.
+
 
 ```js
-function personMaker(name) {
-  this.name = name;
+var couch = {
+  color: 'green',
+  f: function() {
+    return this;
+  }
+};
 
-  return this;
-}
+console.log(couch.f());
+// outputs object
 ```
 
-Now if we call `sayHello(personMaker('Alf'))`, we should see `Hello, Alf!`. Try it!
+**Top-tip:** Notice that this only outputs an `Object` and not something called
+`couch`? That's because `this` is just an instance of the base `Object`
+type here, and `couch` is just the name of the variable holding that
+object instance. The object itself is the owner of the function, and has
+no idea what you named it.
 
-Let's take another example to highlight some of jQuery's magic. This function handle the `load` event.
+### DOM Events
+
+We can also make use of `this` when handling events on the DOM. If our
+`index.html` has three image elements with the same css class, we might
+need to know which specific `img` was clicked.
 
 ```html
-<img class="pix" src="dog.jpg">
-<img class="pix" src="cat.jpg">
-<img class="pix" src="pig.jpg">
+<img class="pix" src="http://i.giphy.com/S1phUc5mmaZqM.gif">
+<img class="pix" src="http://i.giphy.com/eGe59ekUJEll6.gif">
+<img class="pix" src="http://i.giphy.com/l41lNT5u8hCI92nQc.gif">
+<script type="text/javascript" charset="utf-8">
+    var els = document.getElementsByClassName("pix");
+    function handleClick(e) {
+      console.log(this);
+    }
+    for(i=0 ; i < els.length ; i++){
+      els[i].addEventListener("click", handleClick, false);
+    }
+</script>
 ```
 
-```js
-function frameIt(){
-  $('.pix').on('load', function() {
-    $('.pix').addClass("tasty");
-  });
-}
-```
+Here, when we click a given image, we see that `this` refers to that
+specific DOM element, so if we wanted to do something like hide it or
+apply some other class to it, we could safely do so on just that one
+element.
 
-There is actually a really great way to refactor the above example using `this`. We're calling the `on` function on the class `pix`. Because of that fact, we have access to `this` inside of the function, and can replace part of`$('.pix').addClass("tasty");` with `this`:
+## Summary
 
-```js
-function frameIt(){
-  $('.pix').on('load', function() {
-    $(this).addClass("tasty");
-    alert("added class!");
-  });
-}
-```
-
-This is super cool, because `this` refers to each of the three images individually as they load. We would see the alert `added class!` appear three times if we loaded this in the browser.
-
-Behind the scenes, jQuery is modifying the `this` value of the anonymous function above by _binding_ it to value of the target element. This isn't how `this` works by default, but it's pretty cool.
-
-It's important to keep track of the scope in which `this` is being used. A change in scope will cause a change in the object `this` is referencing.
+We learned that we can use the `this` keyword to understand who the
+"owner" of a function is, and how the execution context of the function
+call affects the value of `this`. We also saw how to use `this` in
+objects and when manipulating the DOM to ensure that we are operating on
+only the specific objects that we intend to.
 
 ## Resources
 
