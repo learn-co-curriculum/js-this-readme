@@ -25,7 +25,7 @@ function call.
 
 ## Global Scope
 
-Code running outside of a function is in the **Global Scope**. Every JavaScript runtime has a default global object that will be the value of `this` when a function is called in global scope. In the browser, if we're referencing `this` in the global scope, we're referencing the `Window` object.
+Code running outside of a function is in the **Global Scope**. Every JavaScript runtime has a default global object that will be the value of `this` when a function is called in global scope. In the browser, if we're referencing `this` in the global scope, we're referencing the `window` object.
 
 Try adding the following code to `script.js` and then run `index.html`
 in your browser with the JavaScript console open:
@@ -36,7 +36,7 @@ console.log(this === window);
 ```
 
 Here, we called `this` in the global scope, so
-the value of `this` was set to the default global object, `Window`, when the
+the value of `this` was set to the default global object, `window`, when the
 function was invoked.
 
 ## Function (Local) Scope
@@ -54,13 +54,13 @@ function checkThis(){
   console.log(this);
 }
 checkThis();
-// outputs Window object
+// outputs window object
 ```
 
-This will also output the `Window` object, because this simple function
+This will also output the `window` object, because this simple function
 call doesn't set the `this` value, and because we aren't in *strict
 mode*, the value of `this` must be an object, so the default global
-object `Window` is used.
+object `window` is used.
 
 **Advanced:** Strict mode is a setting that enables better error-checking in your code
 by prohibiting the use of implicitly declared variables, duplicate
@@ -79,11 +79,12 @@ checkThis();
 // outputs "undefined"
 ```
 
-In strict mode, `this` remains at whatever it's set to when entering the execution context. If it's not defined, it remains undefined rather than being assigned the default `Window` object.
+In strict mode, `this` remains at whatever it's set to when entering the execution context. If it's not defined, it remains undefined rather than being assigned the default `window` object.
 
 ### Constructor Function Call
 
-Remember the use of `this` in our constructor functions?
+When we use the constructor function pattern to create objects, we make
+use of `this` to assign property values to the instance of the object being constructed.
 
 ```js
 function Chair(style, color) {
@@ -91,7 +92,7 @@ function Chair(style, color) {
   this.style = style;
   this.color = color;
 }
-sofa = new Chair("sofa", "green");
+var sofa = new Chair("sofa", "green");
 ```
 
 Here, because we're calling `Chair()` with the `new` keyword, `this`
@@ -142,7 +143,7 @@ need to know which specific `img` was clicked.
     function handleClick(e) {
       console.log(this);
     }
-    for(i=0 ; i < els.length ; i++){
+    for(var i=0 ; i < els.length ; i++){
       els[i].addEventListener("click", handleClick, false);
     }
 </script>
